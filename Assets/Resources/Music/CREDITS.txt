@@ -1,0 +1,16 @@
+# Музыка
+
+Все треки — **Kevin MacLeod** ([incompetech.com](https://incompetech.com)), лицензия [Creative Commons: By Attribution 4.0](https://creativecommons.org/licenses/by/4.0/). Для этой лицензии указание автора обязательно — оно здесь и в игре (вступление).
+
+| Файл | Трек | Где звучит |
+|---|---|---|
+| `day.mp3` | Wallpaper | школа, столовая, улица, подработки, магазины |
+| `home.mp3` | Evening Fall — Piano | дом, вечер, ночной выбор, поездка с папой |
+| `casino.mp3` | Lobby Time | контора: лобби и все игры |
+| `tension.mp3` | Dark Times | подворотня и гопники, кражи, участок, комиссия, соблазны, дно зависимости |
+| `sad.mp3` | Heartbreaking | больница, день ареста Паши, разговоры о нём, проигрыши |
+| `hope.mp3` | Lasting Hope | удаление приложения, помощь родителей, неделя без ставок, победа |
+
+"Wallpaper", "Evening Fall - Piano", "Lobby Time", "Dark Times", "Heartbreaking", "Lasting Hope" Kevin MacLeod (incompetech.com)
+Licensed under Creative Commons: By Attribution 4.0 License
+http://creativecommons.org/licenses/by/4.0/

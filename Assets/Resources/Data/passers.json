@@ -1,0 +1,12 @@
+{
+ "👵": { "name": "", "model": "passer_grandma", "props": ["cane", "avoska"], "skin": "#efc8aa", "hair": "#e2e2e2", "hairStyle": "granny", "glasses": true, "wrinkles": true, "top": "#8a5a9a", "topStyle": "cardigan", "accent": "#e8e0d0", "scale": 1.0 },
+ "👴": { "name": "", "model": "passer_grandpa", "props": ["cane"], "skin": "#e8bf9c", "hair": "#c8c8c8", "hairStyle": "bald", "hat": "flatcap", "hatColor": "#6b6258", "mustache": true, "wrinkles": true, "glasses": true, "top": "#5a6a5a", "topStyle": "jacket", "noTie": true, "accent": "#d8d0c0", "scale": 1.08 },
+ "🤱": { "name": "", "model": "passer_mother", "props": ["stroller"], "skin": "#f4cda8", "hair": "#6b3a1f", "hairStyle": "bun", "earrings": true, "top": "#d98ba4", "topStyle": "cardigan", "accent": "#f3efe6", "scale": 1.1 },
+ "🧑": { "name": "", "model": "passer_student", "props": ["backpack"], "skin": "#efc29b", "hair": "#3f2a1c", "hairStyle": "messy", "top": "#4a7a6a", "topStyle": "hoodie", "accent": "#ffffff", "scale": 1.06 },
+ "🧍": { "name": "", "model": "passer_busstop", "props": [], "skin": "#e8b48c", "hair": "#4a3a30", "hairStyle": "short", "stubble": true, "top": "#5a6070", "topStyle": "jacket", "noTie": true, "accent": "#cfd6de", "scale": 1.12 },
+ "🏃": { "name": "", "model": "passer_runner", "props": ["headphones", "run", "shorts"], "skin": "#e9bf95", "hair": "#2a1e18", "hairStyle": "buzz", "top": "#e74c3c", "topStyle": "tshirt", "accent": "#ffffff", "scale": 1.08 },
+ "👔": { "name": "", "model": "passer_business", "props": ["phone_ear", "briefcase"], "skin": "#f0c7a4", "hair": "#2f2f2f", "hairStyle": "neat", "top": "#2a2d34", "topStyle": "jacket", "tie": "#8a2b2b", "accent": "#f5f5f5", "scale": 1.12 },
+ "🚴": { "name": "", "model": "passer_cyclist", "props": ["bike", "helmet"], "skin": "#e2b08a", "hair": "#5a4030", "hairStyle": "short", "hatColor": "#2a9ab0", "top": "#f2c12e", "topStyle": "tracksuit", "accent": "#2a2a33", "scale": 1.08 },
+ "🙎‍♀️": { "name": "", "model": "passer_gloomy", "props": ["bags"], "skin": "#f1c7a3", "hair": "#3b2418", "hairStyle": "long", "top": "#4a4f58", "topStyle": "sweater", "scale": 1.1 },
+ "🛴": { "name": "", "model": "passer_scooter", "props": ["scooter"], "skin": "#f0c49c", "hair": "#c9a35a", "hairStyle": "messy", "hat": "cap", "hatColor": "#d6264f", "top": "#2b2b2b", "topStyle": "tshirt", "accent": "#4ab0e0" }
+}

@@ -1,0 +1,10 @@
+{
+ "m": [
+  { "name": "{name}", "skin": "#f0c8a0", "hair": "#c9803e", "hairStyle": "neat", "top": "#2f8f9d", "topStyle": "hoodie", "accent": "#e8f6f8" },
+  { "name": "{name}", "skin": "#c98e64", "hair": "#1e1a17", "hairStyle": "messy", "top": "#e07b39", "topStyle": "hoodie", "accent": "#fff4e8" }
+ ],
+ "f": [
+  { "name": "{name}", "skin": "#f1c7a3", "hair": "#2b1d14", "hairStyle": "bob", "top": "#d94f70", "topStyle": "hoodie", "accent": "#fdeef2" },
+  { "name": "{name}", "skin": "#f6d3b5", "hair": "#d9a441", "hairStyle": "long", "top": "#3fa37a", "topStyle": "hoodie", "accent": "#ecfaf3", "earrings": true }
+ ]
+}

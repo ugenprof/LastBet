@@ -1,0 +1,399 @@
+{
+ "ITEMS": {
+  "tshirt": {
+   "name": "Футболка",
+   "img": "img/items/shirt.png",
+   "price": 500
+  },
+  "jeans": {
+   "name": "Шорты",
+   "img": "img/items/trousers.png",
+   "price": 800
+  },
+  "hoodie": {
+   "name": "Худи",
+   "img": "img/items/hoodie.png",
+   "price": 1000
+  },
+  "sneakers": {
+   "name": "Кроссовки",
+   "img": "img/items/boots.png",
+   "price": 2500
+  },
+  "headphones": {
+   "name": "Наушники",
+   "img": "img/items/headphones.png",
+   "price": 1500
+  },
+  "watch": {
+   "name": "Умные часы",
+   "img": "img/items/watch.png",
+   "price": 2000
+  },
+  "smartphone": {
+   "name": "Смартфон",
+   "img": "img/items/smartphone.png",
+   "price": 10000
+  }
+ },
+ "CLOTHES_ITEMS": [
+  "tshirt",
+  "jeans",
+  "hoodie",
+  "sneakers"
+ ],
+ "TECH_ITEMS": [
+  "headphones",
+  "watch",
+  "smartphone"
+ ],
+ "LUNCH_DISHES": [
+  {
+   "id": "cutlet",
+   "satiety": 15
+  },
+  {
+   "id": "pasta",
+   "satiety": 14
+  },
+  {
+   "id": "borscht",
+   "satiety": 13
+  },
+  {
+   "id": "fish",
+   "satiety": 12
+  },
+  {
+   "id": "plov",
+   "satiety": 15
+  },
+  {
+   "id": "noodles",
+   "satiety": 11
+  }
+ ],
+ "MATCH_TEAMS": [
+  "🐺 Night Wolves",
+  "🔥 Red Phoenix",
+  "🐻 Iron Bears",
+  "🦅 Cyber Hawks",
+  "⚡ Storm Riders",
+  "🐍 Black Mamba",
+  "❄️ Frost Giants",
+  "🐯 Neon Tigers"
+ ],
+ "FLYER_PASSERS": [
+  {
+   "emoji": "👵",
+   "who": "бабушка с авоськой",
+   "desc": "Бабушка с авоськой, идёт не спеша",
+   "ok": true
+  },
+  {
+   "emoji": "👴",
+   "who": "пенсионер на прогулке",
+   "desc": "Пенсионер прогуливается, разглядывает витрины",
+   "ok": true
+  },
+  {
+   "emoji": "🤱",
+   "who": "мама с малышом",
+   "desc": "Мама с малышом, никуда не торопится",
+   "ok": true
+  },
+  {
+   "emoji": "🧑",
+   "who": "скучающий студент",
+   "desc": "Студент бредёт с рюкзаком, зевает",
+   "ok": true
+  },
+  {
+   "emoji": "🧍",
+   "who": "тот, кто ждёт автобус",
+   "desc": "Мужчина ждёт автобус, скучает",
+   "ok": true
+  },
+  {
+   "emoji": "🏃",
+   "who": "бегун",
+   "desc": "Бегун в наушниках, не сбавляет темп",
+   "ok": false
+  },
+  {
+   "emoji": "👔",
+   "who": "деловой с телефоном",
+   "desc": "Мужчина в костюме, кричит в телефон",
+   "ok": false
+  },
+  {
+   "emoji": "🚴",
+   "who": "велосипедист",
+   "desc": "Велосипедист, проносится мимо",
+   "ok": false
+  },
+  {
+   "emoji": "🙎‍♀️",
+   "who": "хмурая женщина с тяжёлыми пакетами",
+   "desc": "Хмурая женщина с тяжёлыми пакетами",
+   "ok": false
+  },
+  {
+   "emoji": "🛴",
+   "who": "подросток на самокате",
+   "desc": "Подросток на самокате, обгоняет всех",
+   "ok": false
+  }
+ ],
+ "GROCERY_PRODUCTS": [
+  {
+   "emoji": "🍎",
+   "name": "яблоки"
+  },
+  {
+   "emoji": "🥕",
+   "name": "морковь"
+  },
+  {
+   "emoji": "🥔",
+   "name": "картошка"
+  },
+  {
+   "emoji": "🍅",
+   "name": "помидоры"
+  },
+  {
+   "emoji": "🥒",
+   "name": "огурцы"
+  },
+  {
+   "emoji": "🍌",
+   "name": "бананы"
+  },
+  {
+   "emoji": "🧅",
+   "name": "лук"
+  },
+  {
+   "emoji": "🍋",
+   "name": "лимоны"
+  }
+ ],
+ "COURIER_DISTRICTS": [
+  {
+   "emoji": "🟥",
+   "name": "Центр",
+   "streets": [
+    "Ленина",
+    "Садовая",
+    "Пушкина"
+   ]
+  },
+  {
+   "emoji": "🟦",
+   "name": "Север",
+   "streets": [
+    "Северная",
+    "Заводская",
+    "Лесная"
+   ]
+  },
+  {
+   "emoji": "🟩",
+   "name": "Заречье",
+   "streets": [
+    "Речная",
+    "Береговая",
+    "Мостовая"
+   ]
+  }
+ ],
+ "CAFE_MENU": [
+  {
+   "name": "шаурма",
+   "price": 230
+  },
+  {
+   "name": "шаурма большая",
+   "price": 290
+  },
+  {
+   "name": "чай",
+   "price": 40
+  },
+  {
+   "name": "кофе",
+   "price": 90
+  },
+  {
+   "name": "картошка фри",
+   "price": 120
+  },
+  {
+   "name": "газировка",
+   "price": 80
+  },
+  {
+   "name": "пирожок",
+   "price": 50
+  }
+ ],
+ "CAFE_BILLS": [
+  500,
+  1000
+ ],
+ "SLOT_SYMBOLS": [
+  {
+   "emoji": "🍒",
+   "weight": 6,
+   "pays": 6
+  },
+  {
+   "emoji": "🍋",
+   "weight": 5,
+   "pays": 10
+  },
+  {
+   "emoji": "🔔",
+   "weight": 4,
+   "pays": 20
+  },
+  {
+   "emoji": "⭐",
+   "weight": 3,
+   "pays": 30
+  },
+  {
+   "emoji": "💎",
+   "weight": 2,
+   "pays": 60
+  },
+  {
+   "emoji": "7️⃣",
+   "weight": 1,
+   "pays": 100,
+   "jackpot": true
+  }
+ ],
+ "SUNDAY_ACTIVITIES": {
+  "park": {
+   "wheel": {
+    "price": 150,
+    "addiction": -5
+   },
+   "coaster": {
+    "price": 250,
+    "addiction": -5
+   },
+   "cotton": {
+    "price": 100,
+    "satiety": 5
+   },
+   "hotdog": {
+    "price": 180,
+    "satiety": 12
+   }
+  },
+  "mall": {
+   "cinema": {
+    "price": 350,
+    "addiction": -5
+   },
+   "burger": {
+    "price": 300,
+    "satiety": 15
+   },
+   "shake": {
+    "price": 150,
+    "satiety": 5
+   },
+   "claw": {
+    "price": 50,
+    "addiction": 3
+   }
+  },
+  "yard": {
+   "football": {
+    "price": 0,
+    "addiction": -5,
+    "satiety": -5
+   },
+   "kiosk": {
+    "price": 80,
+    "satiety": 7
+   },
+   "shawarma": {
+    "price": 230,
+    "satiety": 15
+   }
+  },
+  "home": {
+   "boardgame": {
+    "price": 0,
+    "addiction": -5
+   },
+   "series": {
+    "price": 0
+   },
+   "homework": {
+    "price": 0
+   }
+  }
+ },
+ "JOB_RAISE": {
+  "flyers": 150,
+  "grocery": 150,
+  "courier": 200,
+  "cafe": 200
+ },
+ "MUSIC_BY_BG": {
+  "school": "day",
+  "classroom": "day",
+  "canteen": "day",
+  "busy_street": "day",
+  "bus_stop": "day",
+  "vegetable_shop": "day",
+  "warehouse": "day",
+  "shawarma": "day",
+  "electronic_store": "day",
+  "cloth_store": "day",
+  "park": "day",
+  "mall": "day",
+  "yard": "day",
+  "home": "home",
+  "kitchen": "home",
+  "night": "home",
+  "car": "home",
+  "casino": "casino",
+  "alley": "tension",
+  "prison": "tension",
+  "school-dark": "tension",
+  "hospital": "sad"
+ },
+ "MUSIC_TRACKS": {
+  "day": {
+   "file": "audio/music/day.mp3",
+   "volume": 0.8
+  },
+  "home": {
+   "file": "audio/music/home.mp3",
+   "volume": 1
+  },
+  "casino": {
+   "file": "audio/music/casino.mp3",
+   "volume": 0.75
+  },
+  "tension": {
+   "file": "audio/music/tension.mp3",
+   "volume": 0.9
+  },
+  "sad": {
+   "file": "audio/music/sad.mp3",
+   "volume": 0.9
+  },
+  "hope": {
+   "file": "audio/music/hope.mp3",
+   "volume": 0.9
+  }
+ }
+}
