@@ -387,6 +387,13 @@ public static class GameArt
                 p.Line(6, 10, 6, 54, 4, w);
                 p.Line(58, 10, 58, 54, 4, w);
                 break;
+            case "conscience":
+                // сердце: совесть
+                p.Circle(22, 26, 13, H("#f472b6"));
+                p.Circle(42, 26, 13, H("#f472b6"));
+                p.Poly(H("#f472b6"), 10.5f, 31, 53.5f, 31, 32, 55);
+                p.Circle(19, 22, 4, H("#fbcfe8"));
+                break;
             case "bag":
                 p.RoundRect(12, 18, 40, 40, 12, H("#4ab0e0"));
                 p.Ring(32, 18, 10, 4, H("#4ab0e0"));

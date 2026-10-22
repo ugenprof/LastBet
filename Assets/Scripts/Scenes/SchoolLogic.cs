@@ -12,6 +12,8 @@ public static class SchoolLogic
     {
         ("beaten", () => S.beatenDay != 0 && S.day - S.beatenDay <= 1),
         ("caught", () => S.theftCaughtCount > 0),
+        ("walletReturned", () => S.marks.Contains("wallet_return")),
+        ("walletKept", () => S.marks.Contains("wallet_keep")),
         ("jobsFriend", () => S.jobDay == S.day - 1 && Rules.MaxIsFriend()),
         ("jobs", () => S.jobDay == S.day - 1),
         ("boughtCasino", () => Rules.YesterdayPurchase() != null && Rules.CasinoNet() > 0),

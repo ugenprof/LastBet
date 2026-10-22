@@ -29,7 +29,7 @@ public static class MatchGame
 
     public static void RenderScreen()
     {
-        if (S.money <= 0)
+        if (Rules.BetBalance() <= 0)
         {
             Game.Render("no_money");
             return;
@@ -79,7 +79,7 @@ public static class MatchGame
 
     static void Play(int amount)
     {
-        if (amount <= 0 || amount > S.money) return;
+        if (amount <= 0 || amount > Rules.BetBalance()) return;
 
         var match = S.currentMatch;
         int pick = match.pick;

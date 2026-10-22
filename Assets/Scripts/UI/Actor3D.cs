@@ -32,6 +32,38 @@ public class Actor3D : MonoBehaviour
     float aspect;
     float height, yaw, faceYaw;
     readonly Dictionary<string, GameObject> parts = new Dictionary<string, GameObject>();
+    readonly List<RigPart> rig = new List<RigPart>();
+
+    // Подвижная часть прохожего: нога, рука, колесо, шатун. Качается / крутится вокруг своей оси X.
+    // forward — знак угла, при котором нога уходит вперёд, а верх колеса катится вперёд (персонаж смотрит в +Z модели)
+    class RigPart
+    {
+        public readonly Transform tr;
+        public readonly string name;
+        public readonly float spin;     // колесо: градусов в секунду — по радиусу, маленькие крутятся быстрее
+        readonly Quaternion rest;
+        readonly float forward;
+
+        public RigPart(Transform tr, string name, Transform model)
+        {
+            this.tr = tr;
+            this.name = name;
+            rest = tr.localRotation;
+            bool spins = name.StartsWith("wheel") || name == "crank";
+            var mf = tr.GetComponent<MeshFilter>();
+            if (name.StartsWith("wheel") && mf != null && mf.sharedMesh != null)
+            {
+                var e = mf.sharedMesh.bounds.extents;
+                spin = Mathf.Min(2.2f / Mathf.Max(0.03f, Mathf.Max(e.y, e.z)) * Mathf.Rad2Deg, 1400f);
+            }
+            Vector3 probe = spins ? Vector3.up : Vector3.down;
+            Vector3 a = model.InverseTransformDirection(tr.parent.TransformDirection(rest * probe));
+            Vector3 b = model.InverseTransformDirection(tr.parent.TransformDirection(rest * Quaternion.AngleAxis(10, Vector3.right) * probe));
+            forward = b.z > a.z ? 1 : -1;
+        }
+
+        public void Set(float degrees) => tr.localRotation = rest * Quaternion.AngleAxis(forward * degrees, Vector3.right);
+    }
 
     public Texture Texture => rt;
 
@@ -109,13 +141,18 @@ public class Actor3D : MonoBehaviour
         model.localPosition = Vector3.zero;
         model.localRotation = Quaternion.identity;   // модель смотрит вдоль +Z, камера стоит перед ней
 
-        // Части героя: имя child «ch_hero_m__top_default» → «top_default»
+        // Части героя: имя child «ch_hero_m__top_default» → «top_default».
+        // Части прохожего «…__anim_leg_l» — суставы и колёса для ходьбы (начало координат — в суставе / на оси)
         parts.Clear();
+        rig.Clear();
         foreach (var r in model.GetComponentsInChildren<Renderer>())
         {
             string n = r.gameObject.name;
             int i = n.IndexOf("__");
-            if (i >= 0) parts[n.Substring(i + 2)] = r.gameObject;
+            if (i < 0) continue;
+            string p = n.Substring(i + 2);
+            if (p.StartsWith("anim_")) rig.Add(new RigPart(r.transform, p.Substring(5), model));
+            else parts[p] = r.gameObject;
         }
         if (parts.Count > 0) SetOutfit(new HashSet<string>());
         Frame();
@@ -239,15 +276,40 @@ public class Actor3D : MonoBehaviour
         model.localPosition = new Vector3(0, Mathf.Abs(Mathf.Sin(t * 2.2f)) * 0.006f * height, 0);
     }
 
-    // Прохожий в пути: пешком — шаг вперевалку, на колёсах — плавно и с лёгким креном
-    public void Walk(float t, bool wheels, bool fast)
+    // Прохожий в пути: пешком — шаг вперевалку, на колёсах — плавно и с лёгким креном.
+    // Ноги шагают (бег — шире и чаще), руки машут навстречу ногам, велосипедист крутит педали,
+    // самокатчик отталкивается, колёса крутятся
+    public void Walk(float t, bool wheels, bool fast, bool run = false)
     {
         if (model == null) return;
-        float f = fast ? 11f : 7f;
-        float bob = wheels ? Mathf.Sin(t * 3f) * 0.004f : Mathf.Abs(Mathf.Sin(t * f)) * 0.022f;
+        float f = run ? 13f : fast ? 11f : 7f;
+        float bob = wheels ? Mathf.Sin(t * 3f) * 0.004f : Mathf.Abs(Mathf.Sin(t * f)) * (run ? 0.04f : 0.022f);
         float roll = wheels ? Mathf.Sin(t * 1.5f) * 2f : Mathf.Sin(t * f) * (fast ? 4f : 3f);
         model.localPosition = new Vector3(0, bob * height, 0);
-        model.localRotation = Quaternion.Euler(wheels ? 0 : 3f, yaw, roll);
+        model.localRotation = Quaternion.Euler(wheels ? 0 : run ? 8f : 3f, yaw, roll);
+
+        // шаг — два подскока: фаза ноги вдвое медленнее подскока
+        float step = Mathf.Sin(t * f / 2f);
+        float leg = run ? 42f : fast ? 28f : 20f, arm = run ? 38f : fast ? 20f : 14f;
+        float pedal = t * 7f;                                   // оборот шатуна, рад
+        float kick = Mathf.Repeat(t * 1.6f, 1f);                // толчок самоката: назад и обратно
+        foreach (var p in rig)
+        {
+            switch (p.name)
+            {
+                case "leg_l": p.Set(step * leg); break;
+                case "leg_r": p.Set(-step * leg); break;
+                case "arm_l": p.Set(-step * arm); break;
+                case "arm_r": p.Set(step * arm); break;
+                case "pedal_l": p.Set(Mathf.Sin(pedal) * 24f); break;
+                case "pedal_r": p.Set(-Mathf.Sin(pedal) * 24f); break;
+                case "crank": p.Set(pedal * Mathf.Rad2Deg); break;
+                case "kick_r": p.Set(kick < 0.55f ? -Mathf.Sin(kick / 0.55f * Mathf.PI) * 38f : 0f); break;
+                default:
+                    if (p.name.StartsWith("wheel")) p.Set(t * p.spin);
+                    break;
+            }
+        }
     }
 
     void OnDestroy()

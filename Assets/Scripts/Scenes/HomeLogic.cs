@@ -92,6 +92,13 @@ public static class HomeLogic
             return false;
         };
 
+        // «Я не Паша» — показал выписку: ставил ли после того разговора
+        Game.Routes["parents_check_show"] = _ =>
+        {
+            Game.Render(S.betsMade > S.waryBets ? "parents_check_caught" : "parents_check_stopped");
+            return true;
+        };
+
         // После голодного обморока: капельница, и мама теперь собирает бутерброды
         Game.Routes["hospital_wake"] = _ =>
         {

@@ -242,7 +242,11 @@ class Model:
         self.sphere(p1, r, m, seg=seg, rings=10)
         self.sphere(p2, r2, m, seg=seg, rings=10)
 
-    def finish(self, collection=None, loc=(0, 0, 0)):
+    def finish(self, collection=None, loc=(0, 0, 0), pivot=None):
+        # pivot — точка вращения части (сустав, ось колеса): меш сдвигается так, чтобы начало координат было в ней
+        if pivot is not None:
+            bmesh.ops.translate(self.bm, vec=-Vector(pivot), verts=self.bm.verts)
+            loc = pivot
         me = bpy.data.meshes.new(self.name)
         self.bm.normal_update()
         self.bm.to_mesh(me)

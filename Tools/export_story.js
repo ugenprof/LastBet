@@ -50,7 +50,7 @@ const toRich = (v) => {
 };
 write("texts.json", toRich(get("TEXTS")));
 write("catalog.json", get(`({ ITEMS, CLOTHES_ITEMS, TECH_ITEMS, LUNCH_DISHES, MATCH_TEAMS, FLYER_PASSERS, GROCERY_PRODUCTS,
-  COURIER_DISTRICTS, CAFE_MENU, CAFE_BILLS, SLOT_SYMBOLS, SUNDAY_ACTIVITIES, JOB_RAISE, MUSIC_BY_BG, MUSIC_TRACKS })`));
+  COURIER_DISTRICTS, CAFE_MENU, CAFE_BILLS, SLOT_SYMBOLS, SUNDAY_ACTIVITIES, JOB_RAISE, BONUS_OFFERS, MUSIC_BY_BG, MUSIC_TRACKS })`));
 write("characters.json", get("CHARACTERS"));
 
 // Числа баланса → C#-константы (объекты — в catalog.json)

@@ -91,8 +91,14 @@ public static class RecoveryLogic
             ? Tpl.Fill(scene.text, "parcelItem", Data.Item(S.parcelItem).name.ToLower())
             : scene.S("textMoney");
 
-        // Подарок родителей тому, кто не ставил: если он ещё и отписался — родители это заметили
-        Game.Texts["parents_gift"] = scene => S.appDeleted ? scene.S("textUnsubscribed") : scene.text;
+        // Подарок родителей тому, кто не ставил: если он ещё и отписался — родители это заметили;
+        // ответил «Я не Паша» — признаются, что тогда не поверили
+        // Сорвался ради «подарка» конторы — что пришло на самом деле
+        Game.Texts["tempt_relapse"] = scene =>
+            Game.BaseText(scene) + (S.lastBonusDay == S.day && S.lastBonus > 0 ? "\n\n" + scene.S("bonusLine") : "");
+
+        Game.Texts["parents_gift"] = scene => Tpl.Fill(S.appDeleted ? scene.S("textUnsubscribed") : scene.text,
+            "waryLine", S.parentsWary ? scene.S("waryLine") : "");
     }
 
     // Ночь в главе 2 с зависимостью ≥ ADDICTION_NO_EXIT: первая — утром мама застанет, предел — ночь с картой.

@@ -21,7 +21,7 @@ public static class Crash
 
     static void RenderScreen()
     {
-        if (S.money <= 0)
+        if (Rules.BetBalance() <= 0)
         {
             Game.Render("no_money");
             return;
@@ -78,7 +78,7 @@ public static class Crash
 
     static void Launch(int amount)
     {
-        if (amount <= 0 || amount > S.money) return;
+        if (amount <= 0 || amount > Rules.BetBalance()) return;
         int myRun = ++run;
         float point = Point(Casino.TakeBet(amount));
         float mult = 1f;

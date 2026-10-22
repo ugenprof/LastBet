@@ -45,6 +45,7 @@ public class ChoiceButton
 
         var tRt = UI.Rect(rt, "Text", Vector2.zero, Vector2.one);
         cb.label = UI.MakeText(tRt.gameObject, Theme.ButtonSize, danger ? Painter.Hex("#fca5a5") : Theme.Text, TextAnchor.MiddleLeft);
+        tRt.gameObject.AddComponent<TextLift>();
         UI.Layout(tRt.gameObject, -1, -1, -1, 1);
         cb.SetLabel(text);
         cb.Disabled = disabled;
@@ -69,6 +70,27 @@ public class ChoiceButton
         if (Disabled) return;
         Music.Click();
         onClick?.Invoke();
+    }
+}
+
+// Подпись кнопки — выше на долю размера шрифта: строка Segoe UI оставляет место под «у», «р», «д»
+// и сидит ниже середины, а номер рядом выровнен по самим цифрам (alignByGeometry)
+public class TextLift : BaseMeshEffect
+{
+    const float Share = 0.2f;
+
+    public override void ModifyMesh(VertexHelper vh)
+    {
+        if (!IsActive() || !(graphic is Text text)) return;
+        int size = text.resizeTextForBestFit ? text.cachedTextGenerator.fontSizeUsedForBestFit : text.fontSize;
+        float dy = size * Share;
+        var v = new UIVertex();
+        for (int i = 0; i < vh.currentVertCount; i++)
+        {
+            vh.PopulateUIVertex(ref v, i);
+            v.position.y += dy;
+            vh.SetUIVertex(v, i);
+        }
     }
 }
 
@@ -325,7 +347,8 @@ public class MiniView
             if (passer3d.SetModel(def.model))
             {
                 var actor = passer3d;
-                bool wheels = def.props != null && (def.props.Contains("bike") || def.props.Contains("scooter") || def.props.Contains("stroller"));
+                // едет — покачивается плавно; мама с коляской идёт пешком
+                bool wheels = def.props != null && (def.props.Contains("bike") || def.props.Contains("scooter"));
                 bool run = def.props != null && def.props.Contains("run");
                 actor.Turn(-62f);     // идёт слева направо — лицом вправо, чуть к зрителю
                 img.texture = actor.Texture;
@@ -335,7 +358,7 @@ public class MiniView
                 {
                     if (rt == null) return;
                     rt.anchoredPosition = new Vector2(Mathf.Lerp(-w * 0.42f, w * 0.42f, k), 0);
-                    actor.Walk(k * seconds, wheels && !run, fast || run);
+                    actor.Walk(k * seconds, wheels, fast || run, run);
                 });
                 return;
             }

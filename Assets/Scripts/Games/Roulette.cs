@@ -14,7 +14,7 @@ public static class Roulette
 
     public static void RenderScreen()
     {
-        if (S.money <= 0)
+        if (Rules.BetBalance() <= 0)
         {
             Game.Render("no_money");
             return;
@@ -65,7 +65,7 @@ public static class Roulette
 
     static void Spin(int amount)
     {
-        if (amount <= 0 || amount > S.money) return;
+        if (amount <= 0 || amount > Rules.BetBalance()) return;
 
         string result = Roll(Casino.TakeBet(amount));
         UI.SetText(Tpl.Fill(Data.T("roulette.spinning"), "amount", amount));

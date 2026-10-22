@@ -40,6 +40,8 @@ public class GameState
     public List<InvItem> inventory = new List<InvItem>();
     public List<string> worn = new List<string>();   // что надето из рюкзака (Outfit)
     public float mood;               // 0..1 — затемнение интерфейса
+    public int conscience = B.CONSCIENCE_START; // совесть: честные поступки — выше, враньё и кражи — ниже
+    public bool selfConfessed;       // сам рассказал родителям про ставки
     public Income income = new Income();
 
     // ===== ПИТАНИЕ ПО ДНЯМ =====
@@ -53,6 +55,9 @@ public class GameState
     public bool dadTalked;
     public string dadHeardFrom = "mom"; // "mom" | "car"
     public bool parentsGiftGiven;
+    public bool parentsWary;    // на 5-й день ответил «Я не Паша» — родители проверят выписку
+    public int waryDay, waryBets; // когда был разговор и сколько ставок было к тому моменту
+    public bool parentsChecked; // выписку уже проверяли
     public int punishedUntil;
     public List<InvItem> confiscated = new List<InvItem>();
     public int lies;
@@ -95,6 +100,10 @@ public class GameState
     public List<string> friendLinesSeen = new List<string>();
     public string classReaction;
     public bool maxTalked, maxSupport;
+    public int maxQuarrelDay;   // день ссоры с Максом (огрызнулся или посмеялся над Пашей)
+    public bool maxMakeupSeen;  // Макс уже давал шанс помириться
+    public bool maxForgiven;    // помирились — Макс снова друг
+    public List<string> marks = new List<string>(); // поступки, которые аукнутся: "granny", "wallet_return", "wallet_keep"
 
     // ===== КАЗИНО =====
     public int betsMade, betsWon, totalStaked, totalWon;
@@ -105,6 +114,17 @@ public class GameState
     public int lastPayout;
     public int lastJackpotMult = 20;
     public bool hadJackpot, jackpotWon, lostEverything;
+    // Бонусы конторы: только для ставок, вывод — после отыгрыша (B.BONUS_*)
+    public int bonus;                // бонусный счёт
+    public int bonusWager;           // сколько ещё поставить, чтобы вывести
+    public int bonusUntil;           // последний день, когда бонус жив
+    public float bonusShare;         // доля бонусных денег в последней ставке
+    public int bonusesTaken, bonusCashedOut;
+    public string bonusNote;         // "burned" — сгорел ночью (сказать утром)
+    public int bonusNoteAmount;
+    public bool firstBonusGiven;
+    public string bonusAfterLine = ""; // строка про бонус для сцены после ставки
+    public int lastBonus, lastBonusDay;
 
     // ===== ГОПНИКИ И ДОЛГ =====
     public string walkRoute;

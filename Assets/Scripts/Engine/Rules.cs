@@ -31,6 +31,15 @@ public static class Rules
 
     // ===== ПОКАЗАТЕЛИ =====
     public static void ChangeAddiction(int delta) => S.addiction = Math.Min(B.ADDICTION_MAX, Math.Max(0, S.addiction + delta));
+    public static void ChangeConscience(int delta) => S.conscience = Math.Min(100, Math.Max(0, S.conscience + delta));
+
+    // Ночь: стыд толкает «забыться» в телефоне, самоуважение помогает держаться
+    public static void ConscienceNight()
+    {
+        if (S.conscience < B.CONSCIENCE_LOW) ChangeAddiction(B.CONSCIENCE_GUILT_ADDICTION);
+        else if (S.conscience >= B.CONSCIENCE_HIGH) ChangeAddiction(-B.CONSCIENCE_PRIDE_RELIEF);
+    }
+
     public static void ChangeSatiety(int delta) => S.satiety = Math.Min(B.SATIETY_MAX, Math.Max(0, S.satiety + delta));
 
     // ===== ВЕЩИ =====
@@ -72,9 +81,14 @@ public static class Rules
     // Макс — друг: признался ему, заступился за Пашу или помог Паше. Посмеялся / огрызнулся — нет
     public static bool MaxIsFriend()
     {
+        if (S.maxForgiven) return true;
         if (S.classReaction == "laugh" || (S.maxTalked && !S.maxSupport)) return false;
         return S.maxSupport || S.classReaction == "defend" || S.pashaSaved;
     }
+
+    // В ссоре с Максом: огрызнулся ему или посмеялся над Пашей (и не признался потом)
+    public static bool MaxQuarrel() =>
+        !S.maxForgiven && ((S.maxTalked && !S.maxSupport) || (S.classReaction == "laugh" && !S.maxSupport));
 
     // Родители верят, пока герой не врёт им раз за разом
     public static bool ParentsTrust() => S.lies < B.PARENTS_TRUST_LIES;
@@ -106,6 +120,73 @@ public static class Rules
         S.cleanDays = 0;
         S.relapses++;
         ChangeAddiction(B.RELAPSE_ADDICTION);
+    }
+
+    // ===== БОНУСЫ КОНТОРЫ =====
+    // На что можно ставить: кошелёк и бонусный счёт
+    public static int BetBalance() => S.money + S.bonus;
+
+    // Начислить бонус: только на бонусный счёт, с отыгрышем. Взять бонус — значит снова открыть приложение
+    public static void GrantBonus(int amount)
+    {
+        if (amount <= 0) return;
+        if (S.appDeleted) Relapse();
+        S.bonus += amount;
+        S.bonusWager += amount * B.BONUS_WAGER;
+        S.bonusUntil = S.day + B.BONUS_DAYS - 1;
+        S.bonusesTaken++;
+        S.lastBonus = amount;
+        S.lastBonusDay = S.day;
+    }
+
+    // Ставка: сначала с бонусного счёта, потом из кошелька. Возвращает, сколько списано из кошелька
+    public static int SpendBet(int amount)
+    {
+        int fromBonus = Math.Min(S.bonus, amount);
+        S.bonus -= fromBonus;
+        S.money -= amount - fromBonus;
+        S.bonusShare = amount > 0 ? (float)fromBonus / amount : 0;
+        if (S.bonusWager > 0) S.bonusWager = Math.Max(0, S.bonusWager - amount);
+        return amount - fromBonus;
+    }
+
+    // Выигрыш: с бонусной ставки — на бонусный счёт. Возвращает, сколько пришло в кошелёк
+    public static int PayOut(int payout)
+    {
+        int toBonus = (int)Math.Round(payout * S.bonusShare);
+        S.bonus += toBonus;
+        S.money += payout - toBonus;
+        return payout - toBonus;
+    }
+
+    // После ставки: отыграл — бонус на карту (не больше BONUS_CASHOUT_MAX); бонусный счёт пуст — отыгрыш сгорает
+    public static int SettleBonus()
+    {
+        if (S.bonus <= 0)
+        {
+            S.bonus = 0;
+            S.bonusWager = 0;
+            return 0;
+        }
+        if (S.bonusWager > 0) return 0;
+        int cash = Math.Min(S.bonus, B.BONUS_CASHOUT_MAX);
+        S.money += cash;
+        S.totalWon += cash;
+        S.bonusCashedOut += cash;
+        S.bonus = 0;
+        return cash;
+    }
+
+    // Ночь: неотыгранный бонус сгорает через BONUS_DAYS
+    public static void ExpireBonus()
+    {
+        if (S.bonus > 0 && S.day > S.bonusUntil)
+        {
+            S.bonusNote = "burned";
+            S.bonusNoteAmount = S.bonus;
+            S.bonus = 0;
+            S.bonusWager = 0;
+        }
     }
 
     // Вещь из подарка, купленная вчера (реплики друзей)

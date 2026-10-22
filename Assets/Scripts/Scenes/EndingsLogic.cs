@@ -31,13 +31,58 @@ public static class EndingsLogic
             var parts = new List<string> { scene.text, scene.Sub("paths", path) };
             parts.AddRange(costs);
             parts.Add(scene.Sub("closings", path));
-            return Tpl.Fill(string.Join("\n\n", parts), v) + "\n\n" + EndingSummary(true);
+            return Tpl.Fill(string.Join("\n\n", parts), v) + "\n\n" + EndingSummary("victory");
         };
 
-        Func<SceneDef, string> withSummary = scene => Game.BaseText(scene) + "\n\n" + EndingSummary(false);
-        Game.Texts["good_ending_epilogue"] = withSummary;
-        Game.Texts["lose_school"] = withSummary;
-        Game.Texts["lose_addiction"] = withSummary;
+        Game.Texts["good_ending_epilogue"] = scene => Game.BaseText(scene) + "\n\n" + EndingSummary("good");
+        Func<SceneDef, string> lose = scene => Game.BaseText(scene) + "\n\n" + EndingSummary("lose");
+        Game.Texts["lose_school"] = lose;
+        Game.Texts["lose_addiction"] = lose;
+    }
+
+    // ===== ДОСТИЖЕНИЯ =====
+    // kind — какой финал: "victory" (рюкзак собран), "good" (неделя без ставок), "lose"
+    static readonly string[] GOOD_DEEDS = { "granny", "wallet_return", "change_return", "parcel_honest", "lost_kid", "window_confess" };
+
+    static List<string> GoodDeeds() => GOOD_DEEDS.Where(S.marks.Contains).ToList();
+
+    static readonly (string id, Func<string, bool> got)[] ACHIEVEMENTS =
+    {
+        ("fast", kind => kind == "victory" && S.day <= B.VICTORY_FAST_DAY),
+        ("calm", kind => kind == "victory" && CalmMisses().Count == 0),
+        ("clean", kind => kind == "good"),
+        ("noBets", _ => S.betsMade == 0 && S.day > B.PASHA_ARREST_DAY),
+        ("honest", _ => S.lies == 0 && S.day > B.PASHA_ARREST_DAY),
+        ("confessed", _ => S.selfConfessed),
+        ("savior", _ => S.pashaSaved),
+        ("defender", _ => S.classReaction == "defend"),
+        ("makeup", _ => S.maxForgiven),
+        ("worker", _ => S.jobShifts >= B.BADGE_WORKER_SHIFTS),
+        ("master", _ => S.jobWins.Values.Any(w => w >= B.JOB_MASTERY_WINS)),
+        ("kind", _ => GoodDeeds().Count >= B.BADGE_KIND_DEEDS),
+        ("conscience", _ => S.conscience >= B.BADGE_CONSCIENCE),
+        ("resist", _ => S.temptationsRefused >= B.BADGE_RESIST),
+        ("cashout", _ => S.bonusCashedOut > 0),
+        ("jackpot", _ => S.jackpotWon),
+        ("fed", _ => S.hospitalVisits == 0 && S.satiety >= B.BADGE_FED_SATIETY),
+    };
+
+    static string AchievementsBlock(string kind, Dictionary<string, object> v)
+    {
+        var t = Data.Scene("ending_summary");
+        var got = ACHIEVEMENTS.Where(a => a.got(kind)).Select(a => a.id).ToList();
+        var left = ACHIEVEMENTS.Where(a => !got.Contains(a.id)).Select(a => t.Sub("badges", a.id).Split(new[] { " — " }, StringSplitOptions.None)[0]).ToList();
+        var lines = new List<string> { Tpl.Fill(t.S("badgesTitle"), "badgesGot", got.Count, "badgesTotal", ACHIEVEMENTS.Length) };
+        lines.AddRange(got.Select(id => Tpl.Fill(t.Sub("badges", id), v)));
+        if (left.Count > 0) lines.Add(Tpl.Fill(t.S("badgesLeft"), "badgesLeft", string.Join(", ", left)));
+        return string.Join("\n", lines);
+    }
+
+    static string ConscienceWord()
+    {
+        var t = Data.Scene("ending_summary");
+        if (S.conscience >= B.CONSCIENCE_HIGH) return t.Sub("conscienceWords", "high");
+        return t.Sub("conscienceWords", S.conscience >= B.CONSCIENCE_LOW + 15 ? "mid" : "low");
     }
 
     // ===== ПУТЬ К ВЕЩАМ =====
@@ -111,7 +156,12 @@ public static class EndingsLogic
             { "itemsCount", S.inventory.Count },
             { "fastDay", B.VICTORY_FAST_DAY },
             { "calmAddiction", B.ADDICTION_LOW },
-            { "calmMiss", string.Join(", ", CalmMisses()) }
+            { "calmMiss", string.Join(", ", CalmMisses()) },
+            { "conscienceWord", ConscienceWord() },
+            { "bonusesTaken", S.bonusesTaken },
+            { "bonusCashedOut", S.bonusCashedOut },
+            { "deeds", string.Join(", ", GoodDeeds().Select(m => Data.Scene("ending_summary").Sub("deedNames", m))) },
+            { "temptationsRefused", S.temptationsRefused }
         };
     }
 
@@ -150,7 +200,7 @@ public static class EndingsLogic
         return string.Join(" · ", parts);
     }
 
-    static string EndingSummary(bool withBadges)
+    static string EndingSummary(string kind)
     {
         var t = Data.Scene("ending_summary");
         var v = EndingVars();
@@ -165,12 +215,8 @@ public static class EndingsLogic
         lines.Add(Tpl.Fill(t.S("family"), "parentsLine", ParentsLine()));
         lines.Add(Tpl.Fill(t.S("friends"), "friendsLine", FriendsLine()));
         lines.Add(t.S("addiction"));
-        if (withBadges)
-        {
-            lines.Add("");
-            lines.Add(S.day <= B.VICTORY_FAST_DAY ? t.S("fast") : t.S("fastMiss"));
-            lines.Add(CalmMisses().Count > 0 ? t.S("calmMiss") : t.S("calm"));
-        }
-        return t.S("title") + "\n" + string.Join("\n", lines.Select(line => Tpl.Fill(line, v)));
+        lines.Add(t.S("conscience"));
+        if (S.bonusesTaken > 0) lines.Add(t.S("bonuses"));
+        return t.S("title") + "\n" + string.Join("\n", lines.Select(line => Tpl.Fill(line, v))) + "\n\n" + AchievementsBlock(kind, v);
     }
 }

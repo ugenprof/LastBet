@@ -359,11 +359,14 @@ def circle(cx, cz, r, n=24):
 class Parts:
     """Куда класть детали: у героя — отдельные модели по частям, у остальных — всё в одну."""
 
-    def __init__(self, base, top=None, pants=None, shoes=None):
+    def __init__(self, base, top=None, pants=None, shoes=None, leg=None, arm=None):
         self.base = base
         self.top = top or base
         self.pants = pants or base
         self.shoes = shoes or base
+        # прохожие: нога / рука стороны s — отдельная часть, которую игра качает при ходьбе
+        self.leg = leg or {}
+        self.arm = arm or {}
 
 
 # Позы: куда тянутся руки (плечо, локоть, кисть) и ноги (бедро, колено, стопа). s = -1 / +1 — сторона
@@ -373,10 +376,8 @@ def arm_pose(pose, s):
         hand = Vector((s * 0.16, -0.36 if pose == 'handlebar' else -0.3, 0.64 if pose == 'handlebar' else 0.6))
         return sh, (sh + hand) / 2 + Vector((s * 0.05, 0, -0.04)), hand
     if pose == 'run':
-        fwd = s > 0
-        el = Vector((s * 0.25, -0.08 if fwd else 0.1, 0.62))
-        hand = Vector((s * 0.21, -0.2 if fwd else 0.16, 0.7 if fwd else 0.56))
-        return sh, el, hand
+        # локти согнуты, кисти впереди; руки машут в игре (Actor3D.Walk)
+        return sh, Vector((s * 0.25, 0.05, 0.62)), Vector((s * 0.22, -0.12, 0.67))
     if pose == 'phone' and s > 0:
         return sh, Vector((s * 0.33, -0.02, 0.8)), Vector((s * 0.235, -0.06, 1.06))
     if pose == 'cane' and s > 0:
@@ -389,8 +390,8 @@ def leg_pose(pose, s):
     if pose == 'ride':
         return hip, Vector((s * 0.1, -0.2, 0.42)), Vector((s * 0.1, -0.14, 0.08 if s > 0 else 0.16))
     if pose == 'run':
-        fwd = s < 0
-        return hip, Vector((s * 0.09, -0.12 if fwd else 0.08, 0.28)), Vector((s * 0.085, -0.1 if fwd else 0.16, 0.09 if fwd else 0.16))
+        # колено чуть вперёд, стопа отведена назад; шаг — в игре
+        return hip, Vector((s * 0.09, -0.07, 0.26)), Vector((s * 0.085, 0.05, 0.1))
     return hip, (hip + Vector((s * 0.085, 0, 0.09))) / 2, Vector((s * 0.085, 0, 0.09))
 
 
@@ -399,14 +400,15 @@ def build_legs(P, d, pose, pants_col, skin, shorts=False, skirt=False, stripe=No
     sm = mat(skin, 0.6)
     for s in (-1, 1):
         hip, knee, foot = leg_pose(pose, s)
+        t = P.leg.get(s, P.pants)
         if shorts:
-            P.pants.limb(hip, knee, 0.074, legm, r2=0.07)
-            P.pants.limb(knee, foot, 0.05, sm)
+            t.limb(hip, knee, 0.074, legm, r2=0.07)
+            t.limb(knee, foot, 0.05, sm)
         else:
-            P.pants.limb(hip, knee, 0.068, legm)
-            P.pants.limb(knee, foot, 0.068, legm)
+            t.limb(hip, knee, 0.068, legm)
+            t.limb(knee, foot, 0.068, legm)
         if stripe:
-            P.pants.limb(hip + Vector((s * 0.066, 0, -0.02)), knee + Vector((s * 0.066, 0, 0)), 0.011, stripe)
+            t.limb(hip + Vector((s * 0.066, 0, -0.02)), knee + Vector((s * 0.066, 0, 0)), 0.011, stripe)
     if skirt:
         P.pants.add(C.g_rcyl(0.24, 0.3, 0.03, 32, r_top=0.19), M((0, 0.01, 0.33), scale=(1, 0.82, 1)), mat('#3d3a4f', 0.8))
     else:
@@ -418,12 +420,13 @@ def build_shoes(P, pose, sneakers, accent, sole=None, swoosh=None):
     for s in (-1, 1):
         _, _, foot = leg_pose(pose, s)
         at = foot + Vector((0, -0.03, -0.045))
-        P.shoes.add(C.g_box(0.12, 0.2, 0.085, 0.035), M(at + Vector((0, 0, 0.0)), scale=1), shoe)
+        t = P.leg.get(s, P.shoes)
+        t.add(C.g_box(0.12, 0.2, 0.085, 0.035), M(at + Vector((0, 0, 0.0)), scale=1), shoe)
         if sneakers:
-            P.shoes.add(C.g_box(0.124, 0.205, 0.025, 0.01), M(at + Vector((0, 0, -0.033))), mat(sole or '#c9c3d6', 0.5, coat=0.3 if sole else 0))
-            P.shoes.add(C.g_box(0.06, 0.03, 0.03, 0.01), M(at + Vector((0, -0.1, 0.03))), mat(accent, 0.6))
+            t.add(C.g_box(0.124, 0.205, 0.025, 0.01), M(at + Vector((0, 0, -0.033))), mat(sole or '#c9c3d6', 0.5, coat=0.3 if sole else 0))
+            t.add(C.g_box(0.06, 0.03, 0.03, 0.01), M(at + Vector((0, -0.1, 0.03))), mat(accent, 0.6))
             if swoosh:
-                P.shoes.add(C.g_box(0.006, 0.12, 0.02, 0.003), M(at + Vector((s * 0.062, 0.01, 0.0)), (0, 0, 0), 1), mat(swoosh, 0.5))
+                t.add(C.g_box(0.006, 0.12, 0.02, 0.003), M(at + Vector((s * 0.062, 0.01, 0.0)), (0, 0, 0), 1), mat(swoosh, 0.5))
 
 
 def build_arms(P, d, pose, style, top, acc, skin):
@@ -434,21 +437,22 @@ def build_arms(P, d, pose, style, top, acc, skin):
     cuff = am if style in ('coat', 'tracksuit', 'uniform', 'jacket') else mat(darken(top, 0.18), 0.75)
     for s in (-1, 1):
         sh, el, hand = arm_pose(pose, s)
+        t = P.arm.get(s, P.top)
         P.top.sphere((s * 0.18, 0.01, 0.8), (0.085, 0.08, 0.075), tm)
         if short:
-            P.top.limb(sh, sh + (el - sh) * 0.7, 0.066, tm)
-            P.top.limb(sh + (el - sh) * 0.7, el, 0.048, sm)
-            P.top.limb(el, hand, 0.048, sm)
+            t.limb(sh, sh + (el - sh) * 0.7, 0.066, tm)
+            t.limb(sh + (el - sh) * 0.7, el, 0.048, sm)
+            t.limb(el, hand, 0.048, sm)
         else:
-            P.top.limb(sh, el, 0.058, tm, r2=0.056)
-            P.top.limb(el, hand + (el - hand).normalized() * 0.03, 0.056, tm, r2=0.054)
+            t.limb(sh, el, 0.058, tm, r2=0.056)
+            t.limb(el, hand + (el - hand).normalized() * 0.03, 0.056, tm, r2=0.054)
             d_ = (hand - el).normalized()
             cuff_at = hand - d_ * 0.03
             rot = d_.to_track_quat('Z', 'Y').to_matrix().to_4x4()
-            P.top.add(C.g_rcyl(0.064, 0.035, 0.012, 18), Matrix.Translation(cuff_at) @ rot, cuff)
+            t.add(C.g_rcyl(0.064, 0.035, 0.012, 18), Matrix.Translation(cuff_at) @ rot, cuff)
         if style == 'tracksuit':
-            P.top.limb(sh + Vector((s * 0.045, 0.02, 0)), el + Vector((s * 0.05, 0, 0)), 0.01, am)
-        P.base.sphere(hand + Vector((0, -0.005, -0.03)), 0.05, sm)
+            t.limb(sh + Vector((s * 0.045, 0.02, 0)), el + Vector((s * 0.05, 0, 0)), 0.01, am)
+        P.arm.get(s, P.base).sphere(hand + Vector((0, -0.005, -0.03)), 0.05, sm)
 
 
 def build_top(P, d, style, top, acc, skin):
@@ -637,9 +641,12 @@ def phone_mesh(m, at, rot, screen='#4ab0ff'):
 VEHICLES = ('bike', 'scooter', 'stroller')
 
 
-def build_props(m, d, props, vehicles):
-    """vehicles=False — то, что на человеке (поднимается вместе с ним); True — транспорт на земле."""
+def build_props(m, d, props, vehicles, hands=None, rig=None):
+    """vehicles=False — то, что на человеке (поднимается вместе с ним); True — транспорт на земле.
+    hands — {сторона: модель руки}: что в руке, качается с ней; rig(имя, ось) — отдельная вращающаяся часть (колесо)."""
     props = [p for p in props if (p in VEHICLES) == vehicles]
+    hr, hl = (hands[1], hands[-1]) if hands else (m, m)
+    part = rig or (lambda name, pivot: m)
     _, _, hand_r = arm_pose(pose_for(d.get('props', [])), 1)
     _, _, hand_l = arm_pose(pose_for(d.get('props', [])), -1)
     metal = mat('#c9ced8', 0.25, 1.0)
@@ -655,33 +662,33 @@ def build_props(m, d, props, vehicles):
             m.limb((k * 0.08, -0.2, HZ + 0.22), (k * 0.09, 0.22, HZ + 0.2), 0.012, mat(WHITE, 0.4))
     if 'cane' in props:
         wood = mat('#6b4423', 0.5, coat=0.3)
-        m.limb(hand_r + Vector((0.0, -0.02, -0.02)), Vector((hand_r.x + 0.02, hand_r.y - 0.06, 0.0)), 0.014, wood)
-        m.add(C.g_torus(0.035, 0.013, 16, 8, arc=math.pi, start=0), M(hand_r + Vector((-0.03, -0.02, 0.0)), (90, 0, 0)), wood)
+        hr.limb(hand_r + Vector((0.0, -0.02, -0.02)), Vector((hand_r.x + 0.02, hand_r.y - 0.06, 0.0)), 0.014, wood)
+        hr.add(C.g_torus(0.035, 0.013, 16, 8, arc=math.pi, start=0), M(hand_r + Vector((-0.03, -0.02, 0.0)), (90, 0, 0)), wood)
     if 'avoska' in props:
         # авоська: сетка-мешок с апельсинами и батоном
         net = mat('#e8c33a', 0.6)
         c = hand_l + Vector((0, 0, -0.17))
         g = C.g_sphere(14, 10)
-        m.add(g, M(c, scale=(0.1, 0.07, 0.12)), mat('#e8c33a', 0.7))
+        hl.add(g, M(c, scale=(0.1, 0.07, 0.12)), mat('#e8c33a', 0.7))
         for k, (dx, dz) in enumerate(((-0.04, -0.03), (0.04, -0.04), (0.0, 0.03))):
-            m.sphere(c + Vector((dx, -0.055, dz)), 0.042, mat('#f08a24', 0.5))
-        m.limb(c + Vector((-0.02, 0.0, 0.1)), c + Vector((-0.07, 0.0, 0.2)), 0.02, mat('#d9a35a', 0.6))
+            hl.sphere(c + Vector((dx, -0.055, dz)), 0.042, mat('#f08a24', 0.5))
+        hl.limb(c + Vector((-0.02, 0.0, 0.1)), c + Vector((-0.07, 0.0, 0.2)), 0.02, mat('#d9a35a', 0.6))
         for s in (-1, 1):
-            m.limb(c + Vector((s * 0.06, 0, 0.09)), hand_l, 0.006, net)
+            hl.limb(c + Vector((s * 0.06, 0, 0.09)), hand_l, 0.006, net)
     if 'bags' in props:
-        for s, h in ((1, hand_r), (-1, hand_l)):
+        for s, h, t in ((1, hand_r, hr), (-1, hand_l, hl)):
             c = h + Vector((s * 0.04, 0, -0.17))
-            m.add(C.g_box(0.16, 0.08, 0.22, 0.03), M(c), mat(WHITE if s > 0 else '#f2c12e', 0.7))
-            m.sphere(c + Vector((0, -0.01, 0.13)), (0.04, 0.03, 0.03), mat('#6aa84f', 0.6))   # зелень из пакета
-            m.limb(c + Vector((-0.05, 0, 0.1)), h, 0.007, mat(WHITE, 0.6))
-            m.limb(c + Vector((0.05, 0, 0.1)), h, 0.007, mat(WHITE, 0.6))
+            t.add(C.g_box(0.16, 0.08, 0.22, 0.03), M(c), mat(WHITE if s > 0 else '#f2c12e', 0.7))
+            t.sphere(c + Vector((0, -0.01, 0.13)), (0.04, 0.03, 0.03), mat('#6aa84f', 0.6))   # зелень из пакета
+            t.limb(c + Vector((-0.05, 0, 0.1)), h, 0.007, mat(WHITE, 0.6))
+            t.limb(c + Vector((0.05, 0, 0.1)), h, 0.007, mat(WHITE, 0.6))
     if 'briefcase' in props:
         c = hand_l + Vector((0, 0, -0.14))
-        m.add(C.g_box(0.08, 0.26, 0.19, 0.02), M(c), mat('#4a3020', 0.4, coat=0.6))
-        m.add(C.g_torus(0.035, 0.008, 16, 6, arc=math.pi, start=0), M(c + Vector((0, 0, 0.1)), (90, 0, 90)), dark)
-        m.add(C.g_box(0.085, 0.03, 0.02, 0.005), M(c + Vector((0, -0.03, 0.05))), mat(GOLD, 0.3, 1.0))
+        hl.add(C.g_box(0.08, 0.26, 0.19, 0.02), M(c), mat('#4a3020', 0.4, coat=0.6))
+        hl.add(C.g_torus(0.035, 0.008, 16, 6, arc=math.pi, start=0), M(c + Vector((0, 0, 0.1)), (90, 0, 90)), dark)
+        hl.add(C.g_box(0.085, 0.03, 0.02, 0.005), M(c + Vector((0, -0.03, 0.05))), mat(GOLD, 0.3, 1.0))
     if 'phone_ear' in props:
-        phone_mesh(m, hand_r + Vector((-0.02, -0.02, 0.03)), (0, -80, 0), '#1e3a5a')
+        phone_mesh(hr, hand_r + Vector((-0.02, -0.02, 0.03)), (0, -80, 0), '#1e3a5a')
     if 'backpack' in props:
         bp = mat('#2a9d8f', 0.75)
         m.add(C.g_box(0.3, 0.16, 0.34, 0.07), M((0, 0.23, 0.6)), bp)
@@ -702,14 +709,23 @@ def build_props(m, d, props, vehicles):
             m.limb(body_c + Vector((s * 0.16, 0.12, 0.0)), Vector((s * 0.16, -0.32, 0.6)), 0.012, metal)
             for y in (-0.1, 0.12):
                 m.limb(body_c + Vector((s * 0.14, y, -0.08)), Vector((s * 0.17, -0.62 + y * 1.3, 0.1)), 0.01, metal)
-                m.add(C.g_torus(0.08, 0.022, 24, 8), M((s * 0.19, -0.62 + y * 1.3, 0.09), (0, 90, 0)), dark)
+                hub = Vector((s * 0.19, -0.62 + y * 1.3, 0.09))
+                w = part('wheel_%s%s' % ('lr'[s > 0], 'fb'[y > 0]), hub)
+                w.add(C.g_torus(0.08, 0.022, 24, 8), M(hub, (0, 90, 0)), dark)
+                for k in range(3):
+                    a = k * math.pi / 3
+                    w.limb(hub + Vector((0, math.cos(a) * 0.07, math.sin(a) * 0.07)),
+                           hub - Vector((0, math.cos(a) * 0.07, math.sin(a) * 0.07)), 0.006, metal)
         m.limb((-0.17, -0.32, 0.6), (0.17, -0.32, 0.6), 0.016, dark)
     if 'scooter' in props:
         deck_z = 0.03
         m.add(C.g_box(0.13, 0.55, 0.035, 0.015), M((0, 0.0, deck_z)), mat('#2a2a33', 0.5, coat=0.5))
         m.add(C.g_box(0.12, 0.5, 0.008, 0.003), M((0, 0.0, deck_z + 0.02)), mat('#d6264f', 0.5))
         for y in (-0.3, 0.3):
-            m.add(C.g_rcyl(0.045, 0.035, 0.012, 20), M((0, y, 0.045), (0, 90, 0)), mat('#ffd23f', 0.4))
+            w = part('wheel_' + 'fb'[y > 0], (0, y, 0.045))
+            w.add(C.g_rcyl(0.045, 0.035, 0.012, 20), M((0, y, 0.045), (0, 90, 0)), mat('#ffd23f', 0.4))
+            for sx in (-1, 1):
+                w.add(C.g_box(0.006, 0.07, 0.012, 0.003), M((sx * 0.019, y, 0.045)), mat('#2a2a33', 0.5))
         m.limb((0, -0.3, 0.06), (0, -0.36, 0.7), 0.016, metal)
         m.limb((-0.19, -0.36, 0.7), (0.19, -0.36, 0.7), 0.014, dark)
     if 'bike' in props:
@@ -717,12 +733,14 @@ def build_props(m, d, props, vehicles):
         tire = mat('#1d1a22', 0.7)
         R, wy, wz = 0.24, 0.48, 0.24
         for y in (-wy, wy):
-            m.add(C.g_torus(R, 0.03, 40, 10), M((0, y, wz), (0, 90, 0)), tire)
-            m.add(C.g_torus(R - 0.03, 0.006, 32, 6), M((0, y, wz), (0, 90, 0)), metal)
+            w = part('wheel_' + 'fb'[y > 0], (0, y, wz))
+            w.add(C.g_torus(R, 0.03, 40, 10), M((0, y, wz), (0, 90, 0)), tire)
+            w.add(C.g_torus(R - 0.03, 0.006, 32, 6), M((0, y, wz), (0, 90, 0)), metal)
             for k in range(6):
                 a = k * math.pi / 3
-                m.limb((0, y, wz), (0, y + math.cos(a) * (R - 0.03), wz + math.sin(a) * (R - 0.03)), 0.004, metal)
-            m.sphere((0, y, wz), 0.025, metal)
+                w.limb((0, y, wz), (0, y + math.cos(a) * (R - 0.03), wz + math.sin(a) * (R - 0.03)), 0.004, metal)
+            w.sphere((0, y, wz), 0.025, metal)
+            w.add(C.g_box(0.012, 0.05, 0.02, 0.004), M((0.03, y, wz + R - 0.05)), mat('#e74c3c', 0.4))  # катафот
         crank = Vector((0, 0.0, 0.2))
         seat = Vector((0, 0.08, 0.5))
         head = Vector((0, -0.3, 0.68))
@@ -732,9 +750,12 @@ def build_props(m, d, props, vehicles):
         m.add(C.g_box(0.1, 0.18, 0.04, 0.02), M(seat + Vector((0, 0.02, 0.04))), dark)
         m.limb(head, Vector((0, -0.3, 0.78)), 0.014, metal)
         m.limb((-0.2, -0.3, 0.78), (0.2, -0.3, 0.78), 0.014, dark)
-        m.sphere(crank, 0.04, metal)
+        cr = part('crank', crank)
+        cr.sphere(crank, 0.04, metal)
         for s in (-1, 1):
-            m.add(C.g_box(0.07, 0.04, 0.012, 0.004), M(crank + Vector((s * 0.1, -0.06 * s, -0.04 * s))), dark)
+            pedal = crank + Vector((s * 0.1, -0.06 * s, -0.08 * s))
+            cr.limb(crank + Vector((s * 0.03, 0, 0)), pedal, 0.012, metal)
+            cr.add(C.g_box(0.07, 0.04, 0.012, 0.004), M(pedal), dark)
 
 
 # ===================== ВЕЩИ ИЗ РЮКЗАКА НА ГЕРОЕ =====================
@@ -787,11 +808,65 @@ def build_item_parts(key, d, coll):
 
 # ===================== СБОРКА =====================
 
+def build_passer(key, d, coll):
+    """Прохожий из листовок: ноги, руки, колёса и шатун — отдельные части с началом в суставе / на оси.
+    Имена «…__anim_leg_l», «…__anim_wheel_f»: игра качает и крутит их на ходу (Actor3D.Walk)."""
+    s = d.get('scale', 1.0)
+    props = d.get('props', [])
+    pose = pose_for(props)
+    name = 'ch_' + key
+    base = C.Model(name + '__base')
+    rig = {}
+
+    def part(n, pivot):
+        if n not in rig:
+            rig[n] = [C.Model('%s__anim_%s' % (name, n)), Vector(pivot)]
+        return rig[n][0]
+
+    side = {-1: 'l', 1: 'r'}
+    legs, arms = {}, {}
+    for sd in (-1, 1):
+        hip = leg_pose(pose, sd)[0]
+        if pose == 'ride':
+            legs[sd] = part('pedal_' + side[sd], hip)     # крутит педали
+        elif pose == 'handlebar':
+            if sd > 0:
+                legs[sd] = part('kick_r', hip)            # отталкивается, другая нога на деке
+        else:
+            legs[sd] = part('leg_' + side[sd], hip)
+        # руки на руле / на коляске и рука с телефоном у уха не качаются
+        if pose not in ('ride', 'handlebar', 'stroller') and not (pose == 'phone' and sd > 0):
+            arms[sd] = part('arm_' + side[sd], arm_pose(pose, sd)[0])
+    P = Parts(base, leg=legs, arm=arms)
+    build_body(P, d, pose)
+    build_head(base, d, key)
+    build_props(base, d, props, vehicles=False, hands={sd: arms.get(sd, base) for sd in (-1, 1)})
+    lift = {'ride': (0.14, 0.08), 'handlebar': (0.06, 0.0)}.get(pose)
+    if lift:
+        shift = Vector((0, lift[1], lift[0]))
+        for mdl in [base] + [r[0] for r in rig.values()]:
+            for v in mdl.bm.verts:
+                v.co += shift
+        for r in rig.values():
+            r[1] = r[1] + shift
+    build_props(base, d, props, vehicles=True, rig=part)
+
+    root = bpy.data.objects.new(name, None)
+    coll.objects.link(root)
+    base.finish(coll).parent = root
+    for mdl, pivot in rig.values():
+        mdl.finish(coll, pivot=pivot).parent = root
+    root.scale = (s, s, s)
+    return root
+
+
 def build_character(key, d, coll):
     s = d.get('scale', 1.0)
     props = d.get('props', [])
     pose = pose_for(props)
     hero = key.startswith('hero_')
+    if key.startswith('passer_'):
+        return build_passer(key, d, coll)
     if not hero:
         m = C.Model('ch_' + key)
         P = Parts(m)

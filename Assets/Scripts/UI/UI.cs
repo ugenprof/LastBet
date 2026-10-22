@@ -27,8 +27,8 @@ public static partial class UI
     static bool scrollToTop, fitPending;
 
     // HUD
-    static Text hudDay, hudMoney, hudAddiction, hudSatiety, hudBag;
-    static RectTransform addictionFill, satietyFill, bagIcons, hudRestart;
+    static Text hudDay, hudMoney, hudAddiction, hudSatiety, hudConscience, hudBag;
+    static RectTransform addictionFill, satietyFill, conscienceFill, bagIcons, hudRestart;
     static UnityEngine.UI.Image musicIcon;
 
     // Окна
@@ -163,23 +163,25 @@ public static partial class UI
         var bg = hud.gameObject.AddComponent<UnityEngine.UI.Image>();
         bg.color = Theme.Hud;
 
-        var left = Rect(hud, "Stats", Vector2.zero, new Vector2(0.82f, 1), new Vector2(18, 12), new Vector2(0, -12));
-        var row = Row(left.gameObject, 12);
+        var left = Rect(hud, "Stats", Vector2.zero, new Vector2(0.85f, 1), new Vector2(18, 12), new Vector2(0, -12));
+        var row = Row(left.gameObject, 10);
         row.childControlWidth = true;
         row.childForceExpandHeight = true;
 
-        hudDay = Chip(left, "day", 210, out _);
-        hudMoney = Chip(left, "money", 200, out _);
-        hudAddiction = BarChip(left, "addiction", 330, Painter.Hex("#a855f7"), out addictionFill);
-        hudSatiety = BarChip(left, "satiety", 310, Painter.Hex("#4ade80"), out satietyFill);
-        hudBag = Chip(left, "bag", 330, out var bagChip, true);
-        bagIcons = Rect(bagChip, "Icons", new Vector2(0.48f, 0), new Vector2(1, 1), new Vector2(0, 6), new Vector2(-10, -6));
+        hudDay = Chip(left, "day", 196, out _);
+        hudMoney = Chip(left, "money", 236, out _);
+        hudAddiction = BarChip(left, "addiction", 276, Painter.Hex("#a855f7"), out addictionFill);
+        hudSatiety = BarChip(left, "satiety", 244, Painter.Hex("#4ade80"), out satietyFill);
+        hudConscience = BarChip(left, "conscience", 244, Painter.Hex("#f472b6"), out conscienceFill);
+        hudBag = Chip(left, "bag", 300, out var bagChip, true);
+        // значки вещей — правее «N/7», размер — по числу вещей (UpdateHud), чтобы все влезли в плашку
+        bagIcons = Rect(bagChip, "Icons", new Vector2(0, 0), new Vector2(1, 1), new Vector2(112, 6), new Vector2(-10, -6));
         var bagRow = Row(bagIcons.gameObject, 2);
         bagRow.childControlWidth = false;
         bagRow.childControlHeight = false;
         bagRow.childAlignment = TextAnchor.MiddleRight;
 
-        var right = Rect(hud, "Controls", new Vector2(0.82f, 0), Vector2.one, new Vector2(0, 12), new Vector2(-18, -12));
+        var right = Rect(hud, "Controls", new Vector2(0.85f, 0), Vector2.one, new Vector2(0, 12), new Vector2(-18, -12));
         var rrow = Row(right.gameObject, 12);
         rrow.childAlignment = TextAnchor.MiddleRight;
         rrow.childForceExpandHeight = true;
@@ -430,21 +432,29 @@ public static partial class UI
     {
         var S = G.S;
         hudDay.text = Data.T("hud.day") + " " + S.day + " · " + Data.TList("weekdaysShort")[Rules.WeekdayIndex()];
-        hudMoney.text = S.money + " ₽";
+        // бонусный счёт — золотом рядом: его можно только ставить
+        hudMoney.text = S.money + " ₽" + (S.bonus > 0 ? Tpl.Fill(Data.T("hud.bonus"), "bonus", S.bonus) : "");
+        hudMoney.supportRichText = true;
         hudAddiction.text = Data.T("hud.addiction") + " " + S.addiction;
         hudSatiety.text = Data.T("hud.satiety") + " " + S.satiety;
         addictionFill.anchorMax = new Vector2(S.addiction / 100f, 1);
         satietyFill.anchorMax = new Vector2(S.satiety / 100f, 1);
         satietyFill.GetComponent<UnityEngine.UI.Image>().color = S.satiety < B.SATIETY_MOM_NOTICE ? Theme.Bad : Painter.Hex("#4ade80");
+        hudConscience.text = Data.T("hud.conscience") + " " + S.conscience;
+        conscienceFill.anchorMax = new Vector2(S.conscience / 100f, 1);
+        hudConscience.color = S.conscience < B.CONSCIENCE_LOW ? Theme.Bad : Theme.Text;
         hudAddiction.color = S.addiction >= B.ADDICTION_NO_EXIT ? Theme.Bad : Theme.Text;
 
         string progress = S.inventory.Count + "/" + Data.C.ITEMS.Count;
         hudBag.text = S.inventory.Count == 0 ? Tpl.Fill(Data.T("inventory.hudEmpty"), "progress", progress) : progress;
         foreach (Transform child in bagIcons) UnityEngine.Object.Destroy(child.gameObject);
-        foreach (var item in S.inventory.Take(7))
+        int shown = Math.Min(S.inventory.Count, Data.C.ITEMS.Count);
+        float room = bagIcons.rect.width > 0 ? bagIcons.rect.width : 170;
+        float size = shown > 0 ? Mathf.Clamp((room - 2 * (shown - 1)) / shown, 16, 30) : 30;
+        foreach (var item in S.inventory.Take(shown))
         {
             var ic = Rect(bagIcons, "I", Vector2.zero, Vector2.zero);
-            ic.sizeDelta = new Vector2(30, 30);
+            ic.sizeDelta = new Vector2(size, size);
             var img = ic.gameObject.AddComponent<UnityEngine.UI.Image>();
             img.sprite = GameArt.Item(item.id);
             img.preserveAspect = true;

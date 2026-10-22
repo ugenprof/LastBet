@@ -20,7 +20,11 @@ public static class Effects
             S.inventory.RemoveAt(choice.sellIndex);
         }
 
-        if (choice.lie == "always" || (choice.lie == "ifPlayed" && S.betsMade > 0)) S.lies++;
+        if (choice.lie == "always" || (choice.lie == "ifPlayed" && S.betsMade > 0))
+        {
+            S.lies++;
+            Rules.ChangeConscience(B.CONSCIENCE_LIE);
+        }
 
         // Обед: full — полный обед дня, half — полпорции, snack — сосиска в тесте
         if (choice.buyLunch != null)
@@ -31,7 +35,11 @@ public static class Effects
         }
         if (choice.packedLunch) Rules.ChangeSatiety(B.MEAL_SATIETY);
         if (choice.sundayActivity != null) SundayLogic.ApplyActivity(choice.sundayActivity);
-        if (choice.theftItem != null) S.theftItemId = choice.theftItem;
+        if (choice.theftItem != null)
+        {
+            S.theftItemId = choice.theftItem;
+            Rules.ChangeConscience(B.CONSCIENCE_THEFT);
+        }
 
         if (choice.effect != null) ApplyEffect(choice.effect);
         if (choice.reset) Rules.ResetGame();
@@ -51,6 +59,7 @@ public static class Effects
         if (e.money != 0) S.money += e.money;
         if (e.addiction != 0) Rules.ChangeAddiction(e.addiction);
         if (e.satiety != 0) Rules.ChangeSatiety(e.satiety);
+        if (e.conscience != 0) Rules.ChangeConscience(e.conscience);
 
         // Семья
         if (e.packLunch) S.momPacksLunch = true;
@@ -62,10 +71,19 @@ public static class Effects
         if (e.dadTalked) S.dadTalked = true;         // родители знают про ставки
         if (e.confessed)                             // сам рассказал — отдельного разговора с папой не будет
         {
+            if (!S.dadTalked) Rules.ChangeConscience(B.CONSCIENCE_CONFESS);
+            S.selfConfessed = true;
             S.dadTalked = true;
             S.dadTalkPending = false;
         }
         if (e.punishDays != 0) S.punishedUntil = S.day + e.punishDays;
+        if (e.wary)                                  // «Я не Паша» — родители проверят выписку
+        {
+            S.parentsWary = true;
+            S.waryDay = S.day;
+            S.waryBets = S.betsMade;
+        }
+        if (e.mark != null && !S.marks.Contains(e.mark)) S.marks.Add(e.mark); // аукнется потом
 
         // Работа: чаевые и премии считаются заработком
         if (e.tip != 0)
@@ -91,6 +109,7 @@ public static class Effects
 
         // Приложение: сорваться и скачать заново
         if (e.relapse) Rules.Relapse();
+        if (e.bonus != null) Rules.GrantBonus(Data.C.BONUS_OFFERS[e.bonus]); // после срыва: приложение уже снова стоит
         if (e.temptation == "refused") S.temptationsRefused++;
 
         // Родители забирают телефон
@@ -113,6 +132,13 @@ public static class Effects
         {
             S.maxTalked = true;
             S.maxSupport = e.maxTalk == "support";
+        }
+        if (e.classReaction == "laugh" || e.maxTalk == "cold") S.maxQuarrelDay = S.day;
+        if (e.maxMakeUp)                             // помирились с Максом
+        {
+            S.maxForgiven = true;
+            S.maxTalked = true;
+            S.maxSupport = true;
         }
     }
 }

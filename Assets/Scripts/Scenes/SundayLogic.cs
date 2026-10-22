@@ -11,7 +11,8 @@ public static class SundayLogic
 
     static readonly Dictionary<string, (string id, Func<bool> when)[]> SUNDAY_EVENTS = new Dictionary<string, (string, Func<bool>)[]>
     {
-        { "park", new (string, Func<bool>)[] { ("sunday_event_lost_kid", () => true), ("sunday_event_lottery", () => S.money >= B.SUNDAY_LOTTERY_COST) } },
+        { "park", new (string, Func<bool>)[] { ("sunday_event_lost_kid", () => true), ("sunday_event_lottery", () => S.money >= B.SUNDAY_LOTTERY_COST),
+                                               ("sunday_event_granny", () => S.marks.Contains("granny")) } },
         { "mall", new (string, Func<bool>)[] { ("sunday_event_arcade", () => S.money >= B.SUNDAY_ARCADE_COST), ("sunday_event_promo", () => S.betsMade > 0) } },
         { "yard", new (string, Func<bool>)[] { ("sunday_event_window", () => S.money >= B.SUNDAY_WINDOW_COST), ("sunday_event_coach", () => true) } },
         { "home", new (string, Func<bool>)[] { ("sunday_event_dad_garage", () => Rules.ParentsTrust()), ("sunday_event_mom_cooking", () => true) } },
@@ -110,10 +111,16 @@ public static class SundayLogic
         }
     }
 
+    // Отклик на поступок героя (помог старушке) — случается без броска SUNDAY_EVENT_CHANCE
+    static readonly string[] SURE_EVENTS = { "sunday_event_granny" };
+
     static string EventFor(string place)
     {
-        if (!Rules.CanHaveRandomEvent() || Rules.Rand() >= B.SUNDAY_EVENT_CHANCE) return null;
+        if (!Rules.CanHaveRandomEvent()) return null;
         var ready = SUNDAY_EVENTS[place].Where(e => !S.sundayEventsSeen.Contains(e.id) && e.when()).Select(e => e.id).ToList();
+        var sure = ready.Where(SURE_EVENTS.Contains).ToList();
+        if (sure.Count > 0) ready = sure;
+        else if (Rules.Rand() >= B.SUNDAY_EVENT_CHANCE) return null;
         if (ready.Count == 0) return null;
         var id = Rules.Pick(ready);
         S.sundayEventsSeen.Add(id);

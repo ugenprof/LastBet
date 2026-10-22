@@ -102,7 +102,7 @@
    "low": "Пальцы сами тянутся к кнопке. Уже не так весело.",
    "calm": "Пока просто интересно. Пока."
   },
-  "betAll": "Поставить всё ({money} ₽)",
+  "betAll": "Поставить всё ({allBalance} ₽)",
   "betEverythingLeft": "Поставить {amount} ₽ (всё, что есть)",
   "bet": "Поставить {amount} ₽",
   "otherGame": "Другая игра",
@@ -113,33 +113,38 @@
    "allIn": "💀 Проигрыш. В горле сухо. «Один раз ещё — и отыграюсь».",
    "calm": "💀 Проигрыш. Экран мигает: «Попробуйте ещё раз»."
   },
-  "lossResult": "<color=#f87171><b>{lossText} −{amount} ₽</b></color>\n\nБаланс: {money} ₽",
+  "lossResult": "<color=#f87171><b>{lossText} −{amount} ₽</b></color>\n\nБаланс: {money} ₽{bonusLine}",
   "win": "🎉 {label}!",
   "winGreedy": "🎉 {label}. Но этого мало. Хочется больше.",
-  "winResult": "<color=#4ade80><b>{winText}</b></color>\n+{payout} ₽\n\nБаланс: {money} ₽",
-  "jackpotResult": "<color=#facc15><b>🌟 ДЖЕКПОТ ×{mult}!</b></color>\n\n+{payout} ₽\n\nБаланс: {money} ₽",
-  "jackpotFlash": "🌟 ×{mult} 🌟"
+  "winResult": "<color=#4ade80><b>{winText}</b></color>\n+{payout} ₽\n\nБаланс: {money} ₽{bonusLine}",
+  "jackpotResult": "<color=#facc15><b>🌟 ДЖЕКПОТ ×{mult}!</b></color>\n\n+{payout} ₽\n\nБаланс: {money} ₽{bonusLine}",
+  "jackpotFlash": "🌟 ×{mult} 🌟",
+  "hudBonus": " + 🎁{bonus}",
+  "bonusLine": " + бонусный счёт {bonus} ₽ (вывести можно, когда поставишь ещё {wager} ₽, и не больше {cashMax} ₽)",
+  "bonusCashout": "🎁 Бонус отыгран! На карту выведено {amount} ₽. Больше {cashMax} ₽ контора не отдаёт — остальное сгорело.",
+  "bonusLost": "🎁 Бонусный счёт пуст. Отыгрывать больше нечего — «подарок» ушёл обратно в контору.",
+  "bonusBurned": "🎁 Ночью пришло уведомление: «Срок бонуса истёк». {amount} бонусных ₽ сгорели — их так и не получилось вывести."
  },
  "roulette": {
-  "info": "🎰 Рулетка. Баланс: {money} ₽.\n\n{mood}\n\n🎰 Проигрыш: 53,5%\n🎉 Выигрыш ×1.9: 46%\n🌟 Джекпот ×20: 0,5%",
+  "info": "🎰 Рулетка. Баланс: {money} ₽{bonusLine}.\n\n{mood}\n\n🎰 Проигрыш: 53,5%\n🎉 Выигрыш ×1.9: 46%\n🌟 Джекпот ×20: 0,5%",
   "spinning": "Крутится... ставка {amount} ₽.",
   "win": "Выигрыш ×1.9"
  },
  "slots": {
-  "info": "🍒 Слоты. Баланс: {money} ₽.\n\n{mood}\n\n{paytable}",
+  "info": "🍒 Слоты. Баланс: {money} ₽{bonusLine}.\n\n{mood}\n\n{paytable}",
   "twoCherries": "🍒🍒 в любом месте ×{mult}",
   "spinning": "Барабаны крутятся... ставка {amount} ₽.",
   "win": "{combo} ×{mult}"
  },
  "crash": {
-  "info": "🚀 Ракета. Баланс: {money} ₽.\n\n{mood}\n\nРакета взлетает, множитель растёт. Нажми «Забрать», пока она не взорвалась, — получишь ставку × множитель. Взорвётся раньше — ставка сгорела.",
+  "info": "🚀 Ракета. Баланс: {money} ₽{bonusLine}.\n\n{mood}\n\nРакета взлетает, множитель растёт. Нажми «Забрать», пока она не взорвалась, — получишь ставку × множитель. Взорвётся раньше — ставка сгорела.",
   "flying": "Ракета летит... ставка {amount} ₽.",
   "cashout": "💰 Забрать ×{mult} (+{payout} ₽)",
   "boom": "💥 Взрыв на ×{mult}",
   "win": "Забрал{|а} на ×{mult}"
  },
  "match": {
-  "intro": "🎮 Ставки на матчи. Баланс: {money} ₽.\n\n{mood}\n\n",
+  "intro": "🎮 Ставки на матчи. Баланс: {money} ₽{bonusLine}.\n\n{mood}\n\n",
   "pickTeam": "Выбери команду, на которую ставишь.",
   "pickAmount": "Ставка на {team} (×{odds}). Сколько ставишь?",
   "league": "Киберлига · матч до двух побед",

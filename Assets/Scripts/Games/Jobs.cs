@@ -88,6 +88,7 @@ public static class Jobs
         run++;
         S.lastJob = type;
         S.jobShifts++;
+        Rules.ChangeConscience(B.CONSCIENCE_JOB); // заработал сам
         lastShiftSuccess = success;
         Rules.ChangeAddiction(-B.JOB_ADDICTION_RELIEF);
 

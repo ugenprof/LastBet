@@ -80,7 +80,7 @@ def preview(sc, obs, path, cols, cell, view=(0.0, -1.0, 0.18), res=(1800, 1000),
     for i, o in enumerate(obs):
         o.hide_render = False
         for ch in o.children:
-            ch.hide_render = not ch.name.endswith(('__base', '_default'))
+            ch.hide_render = not (ch.name.endswith(('__base', '_default')) or '__anim_' in ch.name)
         o.location = ((i % cols - (cols - 1) / 2) * cell[0], 0, -(i // cols) * cell[1])
         if fit:     # предмет — по центру ячейки (dimensions обновляется не сразу — считаем по bound_box)
             bb = [mathutils.Vector(v) for v in o.bound_box]

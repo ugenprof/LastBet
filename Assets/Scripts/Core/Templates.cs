@@ -46,6 +46,14 @@ public static class Tpl
         { "lossDiff", () => Math.Abs(S.money - B.START_MONEY) },
         { "jackpotPayout", () => S.lastPayout },
         { "jackpotMult", () => S.lastJackpotMult },
+        { "allBalance", () => Rules.BetBalance() },
+        { "bonusLine", () => S.bonus > 0 ? Fill(Data.T("casino.bonusLine"), "bonus", S.bonus, "wager", S.bonusWager, "cashMax", B.BONUS_CASHOUT_MAX) : "" },
+        { "firstBonus", () => S.bonus },
+        { "lastBonus", () => S.lastBonus },
+        { "bonusWagerX", () => B.BONUS_WAGER },
+        { "bonusCashMax", () => B.BONUS_CASHOUT_MAX },
+        { "bonusDays", () => B.BONUS_DAYS },
+        { "conscience", () => S.conscience },
 
         // Паша, гопники, папа
         { "pashaDebt", () => S.pashaDebt },

@@ -16,6 +16,8 @@ public static class DayLogic
 
             S.day += 1;
             Rules.ChangeSatiety(-B.SATIETY_NIGHT_LOSS);
+            Rules.ConscienceNight();
+            Rules.ExpireBonus();
 
             bool lostEarly = S.lostEverything && S.day == B.CHAPTER2_EARLY_DAY;
             if (S.chapter == 1 && (S.day > B.CHAPTER1_LAST_DAY || lostEarly))
@@ -60,11 +62,11 @@ public static class DayLogic
         Game.Texts["new_day"] = scene =>
         {
             string pocket = PocketLine(scene);
-            return Tpl.Fill(Rules.IsDayOff() ? Game.PickByDay(scene.L("textSunday")) : Game.BaseText(scene),
+            return ConscienceLine(scene) + Tpl.Fill(Rules.IsDayOff() ? Game.PickByDay(scene.L("textSunday")) : Game.BaseText(scene),
                 "pocketLine", pocket,
                 "pocketLineCap", Tpl.Capitalize(pocket),
                 "packedLine", Rules.MomLunchToday() ? scene.S("packedLine") : "",
-                "returnedLine", S.morningReturned ? scene.S("returnedLine") : "");
+                "returnedLine", S.morningReturned ? scene.S("returnedLine") : "") + BonusNoteLine();
         };
 
         // Заставка главы 2: «Отыграться» или «Заработаю сам»
@@ -100,6 +102,22 @@ public static class DayLogic
         if (earn) S.moneyChoiceDone = true;
     }
 
+    // Утро с низкой совестью — со стыда; с высокой — через день спокойная гордость
+    static string ConscienceLine(SceneDef scene)
+    {
+        if (S.conscience < B.CONSCIENCE_LOW) return Game.PickByDay(scene.L("guiltLines")) + "\n\n";
+        if (S.conscience >= B.CONSCIENCE_HIGH && S.day % 2 == 0) return Game.PickByDay(scene.L("prideLines")) + "\n\n";
+        return "";
+    }
+
+    // Бонус конторы сгорел ночью
+    static string BonusNoteLine()
+    {
+        if (S.bonusNote != "burned") return "";
+        S.bonusNote = null;
+        return "\n\n" + Tpl.Fill(Data.T("casino.bonusBurned"), "amount", S.bonusNoteAmount);
+    }
+
     static string PocketLine(SceneDef scene)
     {
         if (!S.morningPunished) return scene.S("pocketLine");
@@ -121,8 +139,18 @@ public static class DayLogic
             S.familyEvent = null;
             return ev;
         }
+        if (ParentsCheckDue())
+        {
+            S.parentsChecked = true;
+            return "parents_check";
+        }
         return null;
     }
+
+    // Ответил «Я не Паша» — через пару дней папа просит показать выписку. Не ставил — проверили ещё к подарку;
+    // уже знают про ставки — проверять нечего
+    static bool ParentsCheckDue() =>
+        S.parentsWary && !S.parentsChecked && S.betsMade > 0 && !S.dadTalked && S.day >= S.waryDay + B.PARENTS_CHECK_DELAY;
 
     static string SchoolSceneForToday()
     {
@@ -150,6 +178,12 @@ public static class DayLogic
             var temptation = RecoveryLogic.TemptationForToday();
             if (temptation != null) return temptation;
             if (S.dadTalked && !S.maxTalked) return S.classReaction == "laugh" ? "max_knows_laughed" : "max_knows";
+            // Поссорились — через день Макс сам даёт шанс помириться (один раз)
+            if (Rules.MaxQuarrel() && !S.maxMakeupSeen && S.day >= S.maxQuarrelDay + B.MAX_MAKEUP_DELAY)
+            {
+                S.maxMakeupSeen = true;
+                return S.maxTalked ? "max_makeup" : "max_makeup_laughed";
+            }
             if (S.maxTalked) return S.maxSupport ? "day_max_friend" : "day_max_cold";
             if (S.classReaction == "defend") return "day_after_defend";
             return "day_after_pasha";

@@ -18,7 +18,7 @@ public static class Choices
     {
         // Без денег в казино не попасть (при зависимости 100 хватит и копейки)
         int minToPlay = S.addiction >= B.ADDICTION_MAX ? 1 : B.BET_STEP;
-        if (S.money < minToPlay) choices = choices.Where(c => c.next != "first_bet").ToList();
+        if (Rules.BetBalance() < minToPlay) choices = choices.Where(c => c.next != "first_bet").ToList();
 
         if (!Rules.CanQuitApp()) choices = choices.Where(c => !c.quit).ToList();
 

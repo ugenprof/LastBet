@@ -346,6 +346,13 @@
   "courier": 200,
   "cafe": 200
  },
+ "BONUS_OFFERS": {
+  "denis": 300,
+  "push": 300,
+  "ad": 50,
+  "senior": 400,
+  "promo": 300
+ },
  "MUSIC_BY_BG": {
   "school": "day",
   "classroom": "day",

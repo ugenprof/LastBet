@@ -17,6 +17,11 @@ public class Effect
 {
     public int money, addiction, satiety, punishDays, tip;
     public bool packLunch, dadTalked, confessed, rehire, relapse, phoneLock, pashaSaved, jobs;
+    public bool wary;            // «Я не Паша» — родители проверят выписку
+    public bool maxMakeUp;       // помирились с Максом
+    public string mark;          // поступок, который аукнется потом (GameState.marks)
+    public int conscience;       // сдвиг совести
+    public string bonus;         // «завлекаловка» конторы: ключ BONUS_OFFERS — на бонусный счёт
     public string dadTalk;       // "mom" | "car" — вечером придёт папа
     public string company;       // воскресенье: с кем пошёл
     public string route;         // дорога домой из магазина
@@ -137,6 +142,7 @@ public class Catalog
     // Порядок мест и занятий важен (кнопки) — Newtonsoft сохраняет порядок ключей
     public Dictionary<string, Dictionary<string, SundayActivity>> SUNDAY_ACTIVITIES;
     public Dictionary<string, int> JOB_RAISE;
+    public Dictionary<string, int> BONUS_OFFERS;   // сколько дают «завлекаловки» конторы (эффект bonus)
     public Dictionary<string, string> MUSIC_BY_BG;
     public Dictionary<string, MusicTrack> MUSIC_TRACKS;
 }

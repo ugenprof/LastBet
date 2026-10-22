@@ -21,13 +21,13 @@ public static class Casino
 
     // ===== КНОПКИ =====
     // Суммы, которые можно поставить: из набора игры, «всё» — при высокой зависимости, при 100 — только «всё».
-    // −1 — «всё»
+    // Ставить можно и с бонусного счёта (Rules.BetBalance). −1 — «всё»
     static List<int> BetOptions(int[] amounts)
     {
         if (S.addiction >= B.ADDICTION_MAX) return new List<int> { -1 };
-        var options = amounts.Where(v => v <= S.money).ToList();
+        var options = amounts.Where(v => v <= Rules.BetBalance()).ToList();
         if (S.addiction > B.ADDICTION_ALL_IN) options.Add(-1);
-        if (options.Count == 0) options.Add(S.money);
+        if (options.Count == 0) options.Add(Rules.BetBalance());
         return options;
     }
 
@@ -37,10 +37,10 @@ public static class Casino
         {
             string label;
             if (v == -1) label = Tpl.Apply(Data.T("casino.betAll"));
-            else if (v == S.money && v < B.BET_STEP) label = Tpl.Fill(Data.T("casino.betEverythingLeft"), "amount", v);
+            else if (v == Rules.BetBalance() && v < B.BET_STEP) label = Tpl.Fill(Data.T("casino.betEverythingLeft"), "amount", v);
             else label = Tpl.Fill(Data.T("casino.bet"), "amount", v);
             int amount = v;
-            UI.AddButton(label, () => onBet(amount == -1 ? S.money : amount));
+            UI.AddButton(label, () => onBet(amount == -1 ? Rules.BetBalance() : amount));
         }
     }
 
@@ -81,9 +81,8 @@ public static class Casino
     {
         bool forcedLoss = S.addiction >= B.ADDICTION_MAX;
 
-        int balanceBefore = S.money;
-        S.money -= amount;
-        S.totalStaked += amount;
+        int balanceBefore = Rules.BetBalance();
+        S.totalStaked += Rules.SpendBet(amount); // в итогах — только свои деньги, бонусные не считаются
         S.betsMade++;
         Rules.ChangeAddiction(B.ADDICTION_PER_BET);
         S.lastBet = amount;
@@ -96,12 +95,32 @@ public static class Casino
         return null;
     }
 
+    // Строка про бонус после ставки: отыгран и выведен на карту / проигран вместе с отыгрышем.
+    // Она же повторяется в следующей сцене (результат ставки виден всего секунду)
+    static string BonusResultLine(bool hadBonus)
+    {
+        int cash = Rules.SettleBonus();
+        string line = "";
+        if (cash > 0) line = "\n\n" + Tpl.Fill(Data.T("casino.bonusCashout"), "amount", cash, "cashMax", B.BONUS_CASHOUT_MAX);
+        else if (hadBonus && S.bonus <= 0) line = "\n\n" + Data.T("casino.bonusLost");
+        S.bonusAfterLine = line;
+        return line;
+    }
+
+    static string TakeBonusAfterLine()
+    {
+        string line = S.bonusAfterLine ?? "";
+        S.bonusAfterLine = "";
+        return line;
+    }
+
     // Проигрыш: короткая пауза с результатом, потом «после проигрыша» или «денег нет»
     public static void FinishLoss(int amount)
     {
-        if (S.money <= 0) S.lostEverything = true;
+        string bonusLine = BonusResultLine(S.bonusWager > 0 || S.bonusShare > 0);
+        if (Rules.BetBalance() <= 0) S.lostEverything = true;
         string level = MoodLevel() == "low" ? "calm" : MoodLevel();
-        UI.SetText(Tpl.Fill(Data.T("casino.lossResult"), "lossText", Data.T("casino.loss." + level), "amount", amount));
+        UI.SetText(Tpl.Fill(Data.T("casino.lossResult"), "lossText", Data.T("casino.loss." + level), "amount", amount) + bonusLine);
         UI.UpdateHud();
         UI.ApplyMood();
         UI.SetBrightness(0.4f);
@@ -109,18 +128,18 @@ public static class Casino
         Run.After(1.4f, () =>
         {
             UI.SetBrightness(0.85f);
-            Game.Render(S.money <= 0 ? "no_money" : "after_loss");
+            Game.Render(Rules.BetBalance() <= 0 ? "no_money" : "after_loss");
         });
     }
 
     public static void FinishWin(int payout, string label)
     {
-        S.money += payout;
-        S.totalWon += payout;
+        S.totalWon += Rules.PayOut(payout);
         S.betsWon++;
+        string bonusLine = BonusResultLine(false);
 
         string winText = Tpl.Fill(Data.T(S.addiction >= B.ADDICTION_ALL_IN ? "casino.winGreedy" : "casino.win"), "label", label);
-        UI.SetText(Tpl.Fill(Data.T("casino.winResult"), "winText", winText, "payout", payout));
+        UI.SetText(Tpl.Fill(Data.T("casino.winResult"), "winText", winText, "payout", payout) + bonusLine);
         UI.UpdateHud();
         UI.ApplyMood();
         UI.SetBrightness(1.25f);
@@ -136,9 +155,9 @@ public static class Casino
     public static void WinBigJackpot(int amount, int mult)
     {
         int payout = amount * mult;
-        S.money += payout;
-        S.totalWon += payout;
+        S.totalWon += Rules.PayOut(payout);
         S.betsWon++;
+        string bonusLine = BonusResultLine(false);
         S.lastPayout = payout;
         S.lastJackpotMult = mult;
         Rules.ChangeAddiction(B.ADDICTION_JACKPOT);
@@ -146,7 +165,7 @@ public static class Casino
         S.jackpotWon = true;
         UI.JackpotFlash(Tpl.Fill(Data.T("casino.jackpotFlash"), "mult", mult));
 
-        UI.SetText(Tpl.Fill(Data.T("casino.jackpotResult"), "payout", payout, "mult", mult));
+        UI.SetText(Tpl.Fill(Data.T("casino.jackpotResult"), "payout", payout, "mult", mult) + bonusLine);
         UI.UpdateHud();
         UI.ApplyMood();
         UI.SetBrightness(1.4f);
@@ -159,10 +178,19 @@ public static class Casino
 
     public static void Register()
     {
-        // «Первый депозит» — только в первый раз, дальше сразу в лобби
+        // «Первый депозит» — только в первый раз, дальше сразу в лобби. Бонус 100% (до FIRST_DEPOSIT_BONUS_MAX)
+        // приходит на бонусный счёт — один раз за игру
         Game.Routes["first_bet"] = _ =>
         {
-            if (S.betsMade == 0) return false;
+            if (S.betsMade == 0)
+            {
+                if (!S.firstBonusGiven)
+                {
+                    S.firstBonusGiven = true;
+                    Rules.GrantBonus(Math.Min(S.money, B.FIRST_DEPOSIT_BONUS_MAX));
+                }
+                return false;
+            }
             Game.Render("casino_lobby");
             return true;
         };
@@ -177,10 +205,12 @@ public static class Casino
         // ===== ТЕКСТЫ ПОСЛЕ СТАВКИ =====
         Game.Texts["after_loss"] = scene =>
         {
-            if (S.money > B.START_MONEY) return scene.S("textProfit");
-            if (S.money == B.START_MONEY) return scene.S("textEven");
-            return scene.text;
+            if (S.money > B.START_MONEY) return scene.S("textProfit") + TakeBonusAfterLine();
+            if (S.money == B.START_MONEY) return scene.S("textEven") + TakeBonusAfterLine();
+            return scene.text + TakeBonusAfterLine();
         };
+        foreach (var id in new[] { "after_win", "no_money", "jackpot_win" })
+            Game.Texts[id] = scene => Game.BaseText(scene) + TakeBonusAfterLine();
 
         Game.Texts["stop_but_drawn"] = scene =>
         {
